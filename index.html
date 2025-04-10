@@ -1,0 +1,91 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Smart Travel Log</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 400px; margin: auto; padding: 20px; background: #f8f8f8; }
+    h2 { text-align: center; }
+    input, button { width: 100%; padding: 10px; margin: 8px 0; border-radius: 5px; border: 1px solid #ccc; }
+    .bar { background: #ddd; border-radius: 20px; overflow: hidden; margin-top: 10px; }
+    .progress { background: #4CAF50; height: 20px; width: 0%; transition: width 0.3s; color: white; text-align: center; font-size: 12px; line-height: 20px; }
+    .warning { background: #fff3cd; color: #856404; padding: 10px; border-radius: 5px; margin-top: 10px; font-size: 14px; }
+  </style>
+</head>
+<body>
+
+  <h2>Smart Travel Log</h2>
+  
+  <label for="zip">ZIP/Postal Code</label>
+  <input type="text" id="zip" placeholder="Enter ZIP code (e.g., 10001)" oninput="detectLocation()">
+
+  <label for="days">Days Logged</label>
+  <input type="number" id="days" value="178" readonly>
+
+  <label for="miles">Miles Logged</label>
+  <input type="number" id="miles" value="145" readonly>
+
+  <button onclick="addDay()">+ Add a Day</button>
+
+  <div class="bar">
+    <div class="progress" id="progress">0%</div>
+  </div>
+
+  <div class="warning" id="alert" style="display: none;"></div>
+
+  <button onclick="exportData()">Export Summary</button>
+
+<script>
+  const threshold = 183;
+  function detectLocation() {
+    const zip = document.getElementById("zip").value;
+    if (zip === "10001") {
+      document.getElementById("alert").innerText = "Jurisdiction: New York";
+      document.getElementById("alert").style.display = "block";
+    } else {
+      document.getElementById("alert").style.display = "none";
+    }
+  }
+
+  function addDay() {
+    const daysInput = document.getElementById("days");
+    let days = parseInt(daysInput.value);
+    days += 1;
+    daysInput.value = days;
+    updateProgress(days);
+  }
+
+  function updateProgress(days) {
+    const percent = Math.min((days / threshold) * 100, 100);
+    const progressBar = document.getElementById("progress");
+    progressBar.style.width = percent + "%";
+    progressBar.innerText = `${days}/${threshold}`;
+
+    const alertBox = document.getElementById("alert");
+    if (days >= threshold) {
+      alertBox.innerText = "⚠️ Threshold exceeded! You may trigger tax residency.";
+      alertBox.style.display = "block";
+    } else if (days >= threshold * 0.9) {
+      alertBox.innerText = "⚠️ You are nearing the residency threshold.";
+      alertBox.style.display = "block";
+    }
+  }
+
+  function exportData() {
+    const zip = document.getElementById("zip").value;
+    const days = document.getElementById("days").value;
+    const miles = document.getElementById("miles").value;
+    const summary = `ZIP: ${zip}\nDays Logged: ${days}\nMiles Logged: ${miles}`;
+    const blob = new Blob([summary], { type: 'text/plain' });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "travel_summary.txt";
+    link.click();
+  }
+
+  window.onload = () => updateProgress(parseInt(document.getElementById("days").value));
+</script>
+
+</body>
+</html>
